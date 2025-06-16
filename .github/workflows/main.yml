@@ -9,7 +9,7 @@ on:
       - main
 
 env:
-  CSV_URL: "MLProject\personality_dataset.csv"
+  CSV_URL: "MLProject/personality_dataset.csv"
   TARGET_VAR: "Personality"
   ALPHA: 0.5
   L1_RATIO: 0.5
