@@ -1,0 +1,41 @@
+name: CI MLflow
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+env:
+  CSV_URL: "MLProject\personality_dataset.csv"
+  TARGET_VAR: "Personality"
+  ALPHA: 0.5
+  L1_RATIO: 0.5
+  RANDOM_STATE: 42
+
+jobs:
+  build:
+    runs-on: ubuntu latest
+
+    stpes:
+      - uses: actions/checkout@v3
+
+      - name: Set up Python 3.11.2
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.11.2"
+
+      - name: Check Env
+        run: |
+          echo @CSV_URL
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install mlflow
+
+      - name: Run mlflow project
+        run: |
+          mlflow run MLProject --env-manager=local
