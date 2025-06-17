@@ -14,7 +14,7 @@ parser.add_argument('--random_state', type=int, default=42)
 args = parser.parse_args()
 
 # Menjalankan eksperimen agar disimpan pada Tracking UI
-mlflow.set_tracking_uri("http://127.0.0.1:5000")
+# mlflow.set_tracking_uri("http://127.0.0.1:5000")
 
 # Menyimpan data hasil pelatihan pada satu pipeline
 mlflow.set_experiment('membangun_model')
