@@ -9,6 +9,8 @@ import argparse
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--data_path', type=str, default='data_preprocessing.csv')
+parser.add_argument('--test_size', type=float, default=0.3)
+parser.add_argument('--random_state', type=int, default=42)
 args = parser.parse_args()
 
 # Menjalankan eksperimen agar disimpan pada Tracking UI
