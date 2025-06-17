@@ -3,12 +3,11 @@ conda_env: conda.yaml
 entry_points:
   main:
     parameters:
-      data_path: { type: str }
-      model_output: { type: str, default: models/model.pkl }
+      data_path: { type: str, default: 'data.preprocessing.csv' }
       test_size: { type: float, default: 0.3 }
       random_state: { type: int, default: 42 }
-    command: python modelling.py
+    command: >
+      python modelling.py 
       --data_path {data_path}
-      --model_output {model_output}
       --test_size {test_size}
       --random_state {random_state}
