@@ -8,16 +8,9 @@ on:
     branches:
       - main
 
-env:
-  CSV_URL: 'MLProject/personality_dataset.csv'
-  TARGET_VAR: 'Personality'
-  ALPHA: 0.5
-  L1_RATIO: 0.5
-  RANDOM_STATE: 42
-
 jobs:
   build:
-    runs-on: ubuntu latest
+    runs-on: ubuntu-latest
 
     steps:
       - name: Checkout code
@@ -28,10 +21,6 @@ jobs:
         with:
           python-version: '3.11.2'
 
-      - name: Check Env
-        run: |
-          echo $CSV_URL
-
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
@@ -39,11 +28,13 @@ jobs:
           pip install --upgrade google-auth google-auth-oauthlib google-auth-httplib google-api-python-client
 
       - name: Run mlflow project
+        working-directory: ./MLProject
         run: |
-          mlflow run ./MLproject --env-manager=local
+          mlflow run . --env-manager=local
 
       - name: Get latest MLflow run_id
         id: get_run_id
+        working_directory: ./MLProject
         run: |
           RUN_ID=$(ls -td mlruns/0/*/ | head -n 1 | cut -d'/' -f3)
           echo "run_id=$RUN_ID" >> $GITHUB_OUTPUT
@@ -59,10 +50,11 @@ jobs:
       - name: Upload to GitHub Artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: mlflow-run
-          path: MLProject/model/
+          name: mlflow-model
+          path: mlruns/0/${{ steps.get_run_id.outputs.run_id }}/artifacts/model/
 
       - name: Build Docker Model
+        working-directory: ./MLProject
         run: |
           run_id=${{ steps.get_run_id.outputs.run_id }}
           mlflow models build-docker -m mlruns/0/$run_id/artifacts/model -n ${{ secrets.DOCKER_USERNAME }}/mlflow-model
