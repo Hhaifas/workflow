@@ -9,8 +9,8 @@ on:
       - main
 
 env:
-  CSV_URL: "MLProject/personality_dataset.csv"
-  TARGET_VAR: "Personality"
+  CSV_URL: 'MLProject/personality_dataset.csv'
+  TARGET_VAR: 'Personality'
   ALPHA: 0.5
   L1_RATIO: 0.5
   RANDOM_STATE: 42
@@ -26,12 +26,12 @@ jobs:
       - name: Set up Python 3.11.2
         uses: actions/setup-python@v4
         with:
-          python-version: "3.11.2"
+          python-version: '3.11.2'
 
       - name: Check Env
         run: |
           echo $CSV_URL
-          
+
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
@@ -48,11 +48,11 @@ jobs:
           RUN_ID=$(ls -td mlruns/0/*/ | head -n 1 | cut -d'/' -f3)
           echo "run_id=$RUN_ID" >> $GITHUB_OUTPUT
           echo "Latest RUN_ID: $RUN_ID"
-          
+
       - name: Upload to Google Drive
         env:
-          GDRIVE_CREDENTIALS: ${{ secrets.GDRIVE_CREDENTIALS }}  # Mengambil kredensial dari GitHub Secrets
-          GDRIVE_FOLDER_ID: ${{ secrets.GDRIVE_FOLDER_ID }}  # Mengambil kredensial dari GitHub Secrets
+          GDRIVE_CREDENTIALS: ${{ secrets.GDRIVE_CREDENTIALS }} # Mengambil kredensial dari GitHub Secrets
+          GDRIVE_FOLDER_ID: ${{ secrets.GDRIVE_FOLDER_ID }} # Mengambil kredensial dari GitHub Secrets
         run: |
           python MLproject/upload_to_gdrive.py
 
@@ -60,7 +60,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: mlflow-run
-          path: mlruns/
+          path: MLProject/model/
 
       - name: Build Docker Model
         run: |
