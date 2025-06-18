@@ -1,4 +1,4 @@
-name: Personality Model CI Pipeline
+name: Personality CI Pipeline
 
 on:
   push:
@@ -8,7 +8,7 @@ on:
   workflow_dispatch:
 
 env:
-  DOCKER_IMAGE_NAME: ${{ secrets.DOCKER_USERNAME }}/personality-model
+  DOCKER_IMAGE_NAME: haifasyn/mlflow-model
   EXPERIMENT_NAME: membangun_model
 
 jobs:
@@ -21,16 +21,17 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
-          python-version: '3.11'
+          python-version: '3.10'
 
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install -r MLProject/requirements.txt
+          pip install -r requirements.txt
           pip install flake8
 
       - name: Lint code
-        run: flake8 MLProject/modelling.py --count --select=E9,F63,F7,F82 --show-source --statistics
+        run: |
+          flake8 MLProject/modelling.py --count --select=E9,F63,F7,F82 --show-source --statistics
 
   build-and-train:
     needs: test
@@ -56,7 +57,7 @@ jobs:
       - name: Create model output directory
         run: mkdir -p model_output
 
-      - name: Run ML training with MLflow in Docker
+      - name: Run ML training with MLflow
         env:
           DAGSHUB_USERNAME: ${{ secrets.DAGSHUB_USERNAME }}
           DAGSHUB_TOKEN: ${{ secrets.DAGSHUB_TOKEN }}
@@ -67,19 +68,24 @@ jobs:
           GITHUB_REPOSITORY: ${{ github.repository }}
           GITHUB_ACTOR: ${{ github.actor }}
         run: |
-          RUN_ID=$(ls -td mlruns/0/*/ | head -n 1 | cut -d'/' -f3)
-          echo "run_id=$RUN_ID" >> $GITHUB_OUTPUT
+          docker run --rm \
+            -e DAGSHUB_USERNAME="${{ secrets.DAGSHUB_USERNAME }}" \
+            -e DAGSHUB_TOKEN="${{ secrets.DAGSHUB_TOKEN }}" \
+            -e DOCKER_USERNAME="${{ secrets.DOCKER_USERNAME }}" \
+            -e GITHUB_RUN_NUMBER="${{ github.run_number }}" \
+            -e GITHUB_SHA="${{ github.sha }}" \
+            -e GITHUB_REF="${{ github.ref }}" \
+            -e GITHUB_REPOSITORY="${{ github.repository }}" \
+            -e GITHUB_ACTOR="${{ github.actor }}" \
+            -v $(pwd)/model_output:/app/MLProject/model_output \
+            ${{ env.DOCKER_IMAGE_NAME }}:${{ github.sha }}
 
-      - name: Check if model dir exists
-        working-directory: ./MLProject
+      - name: List files in model_output
         run: |
-          run_id=${{ steps.get_run_id.outputs.run_id }}
-          if [ ! -d "mlruns/0/$run_id/artifacts/model" ]; then
-            echo "Model directory does not exist!"
-            exit 1
-          fi
+          echo "Contents of model_output directory:"
+          ls -la model_output/
 
-      - name: Upload to GitHub Artifacts
+      - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
           name: model-artifacts
@@ -90,7 +96,7 @@ jobs:
       - name: Setup Google Drive credentials
         if: success()
         run: |
-          echo "${{ secrets.GDRIVE_CREDENTIALS }}" | base64 --decode > scripts/service_account.json
+          echo "${{ secrets.GOOGLE_DRIVE_CREDENTIALS }}" | base64 --decode > scripts/service_account.json
           # Verify file was created correctly (without showing content)
           ls -la scripts/service_account.json
 
@@ -98,7 +104,8 @@ jobs:
         if: success()
         run: |
           pip install google-auth google-auth-oauthlib google-auth-httplib2 google-api-python-client
-          python scripts/upload_to_gdrive.py
+          cd scripts
+          python upload-to-drive.py
 
       - name: Push Docker image
         if: success()
@@ -117,6 +124,6 @@ jobs:
       - name: Deploy notification
         run: |
           echo "🚀 Model training completed successfully!"
-          echo "📊 MLflow tracking: https://dagshub.com/${{ secrets.DAGSHUB_USERNAME }}/Personality-Tracking-Model.mlflow"
+          echo "📊 MLflow tracking: https://dagshub.com/${{ secrets.DAGSHUB_USERNAME }}/Water-Quality-Tracking-Model.mlflow"
           echo "🐳 Docker image: ${{ env.DOCKER_IMAGE_NAME }}:${{ github.sha }}"
           echo "📁 Artifacts uploaded to Google Drive"
