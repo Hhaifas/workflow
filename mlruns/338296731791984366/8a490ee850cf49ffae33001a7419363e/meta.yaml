@@ -1,0 +1,15 @@
+artifact_uri: mlflow-artifacts:/338296731791984366/8a490ee850cf49ffae33001a7419363e/artifacts
+end_time: 1750208816058
+entry_point_name: ''
+experiment_id: '338296731791984366'
+lifecycle_stage: active
+run_id: 8a490ee850cf49ffae33001a7419363e
+run_name: abrasive-stork-42
+run_uuid: 8a490ee850cf49ffae33001a7419363e
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1750208812484
+status: 3
+tags: []
+user_id: Asus
