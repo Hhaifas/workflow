@@ -31,6 +31,9 @@ jobs:
         run: |
           unset MLFLOW_TRACKING_URI
 
+      - name: Clean old mlruns
+        run: rm -rf mlruns
+  
       - name: Run mlflow project
         run: |
           mlflow run MLProject --env-manager=local
@@ -38,14 +41,14 @@ jobs:
       - name: Get latest MLflow run_id
         id: get_run_id
         run: |
-          RUN_ID=$(ls -td mlruns/*/ | head -n 1 | cut -d'/' -f3)
+          RUN_ID=$(ls -td mlruns/0/*/ | head -n 1 | cut -d'/' -f3)
           echo "run_id=$RUN_ID" >> $GITHUB_OUTPUT
 
       - name: Upload to GitHub Artifacts
         uses: actions/upload-artifact@v4
         with:
           name: mlflow-model
-          path: mlruns/${{ steps.get_run_id.outputs.run_id }}/artifacts/model/
+          path: mlruns/0/${{ steps.get_run_id.outputs.run_id }}/artifacts/model/
 
       - name: Upload to Google Drive
         env:
