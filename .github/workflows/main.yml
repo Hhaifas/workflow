@@ -52,7 +52,7 @@ jobs:
           GDRIVE_FOLDER_ID: ${{ secrets.GDRIVE_FOLDER_ID }} # Mengambil kredensial dari GitHub Secrets
         if: success()
         run: |
-          pip install --upgrade google-auth google-auth-oauthlib google-auth-httplib google-api-python-client
+          pip install --upgrade google-auth google-auth-oauthlib google-auth-httplib2 google-api-python-client
           python MLProject/upload_to_gdrive.py
 
       - name: Build Docker Model
