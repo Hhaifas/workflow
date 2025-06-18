@@ -74,44 +74,44 @@ def main(args):
     max_depth = 10
     mlflow.sklearn.autolog(log_input_examples=False)
 
-    run_name = f"RandomForest_{os.environ.get('GITHUB_RUN_NUMBER', 'local')}"
-    with mlflow.start_run(run_name=run_name):
-        model = RandomForestClassifier(n_estimators=n_estimators, max_depth=max_depth)
-        model.fit(X_train, y_train)
+    # run_name = f"RandomForest_{os.environ.get('GITHUB_RUN_NUMBER', 'local')}"
 
-        # Log model ke MLflow
-        mlflow.sklearn.log_model(
-            sk_model=model,
-            artifact_path="model",
-            input_example=[input_example],
-        )
-        print("✅ Model berhasil disimpan ke MLflow.")
+    model = RandomForestClassifier(n_estimators=n_estimators, max_depth=max_depth)
+    model.fit(X_train, y_train)
 
-        # Save model ke lokal juga untuk artifact
-        save_model_local(model, model_name="model_rf.pkl")
+    # Log model ke MLflow
+    mlflow.sklearn.log_model(
+        sk_model=model,
+        artifact_path="model",
+        input_example=[input_example],
+    )
+    print("✅ Model berhasil disimpan ke MLflow.")
 
-        # Log metrics manual (autolog sudah log, tapi contoh manual)
-        y_pred = model.predict(X_test)
-        accuracy = accuracy_score(y_test, y_pred)
-        f1 = f1_score(y_test, y_pred, average='macro')
-        precision = precision_score(y_test, y_pred, average='macro', zero_division=0)
-        recall = recall_score(y_test, y_pred, average='macro', zero_division=0)
+    # Save model ke lokal juga untuk artifact
+    save_model_local(model, model_name="model_rf.pkl")
 
-        mlflow.log_metric("accuracy", accuracy)
-        mlflow.log_metric("f1_score", f1)
-        mlflow.log_metric("precision", precision)
-        mlflow.log_metric("recall", recall)
-        print(f"📊 Akurasi: {accuracy:.4f}, F1: {f1:.4f}")
+    # Log metrics manual (autolog sudah log, tapi contoh manual)
+    y_pred = model.predict(X_test)
+    accuracy = accuracy_score(y_test, y_pred)
+    f1 = f1_score(y_test, y_pred, average='macro')
+    precision = precision_score(y_test, y_pred, average='macro', zero_division=0)
+    recall = recall_score(y_test, y_pred, average='macro', zero_division=0)
 
-        # Log info CI/CD jika dijalankan di GitHub Actions
-        if os.environ.get('GITHUB_SHA'):
-            mlflow.log_param("github_sha", os.environ['GITHUB_SHA'])
-            mlflow.log_param("github_ref", os.environ.get('GITHUB_REF'))
-            mlflow.log_param("github_run_number", os.environ.get('GITHUB_RUN_NUMBER'))
+    mlflow.log_metric("accuracy", accuracy)
+    mlflow.log_metric("f1_score", f1)
+    mlflow.log_metric("precision", precision)
+    mlflow.log_metric("recall", recall)
+    print(f"📊 Akurasi: {accuracy:.4f}, F1: {f1:.4f}")
 
-        # Info tracking
-        tracking_mode = "remote" if os.environ.get('DAGSHUB_TOKEN') and os.environ.get('DAGSHUB_USERNAME') else "local"
-        mlflow.log_param("tracking_mode", tracking_mode)
+    # Log info CI/CD jika dijalankan di GitHub Actions
+    if os.environ.get('GITHUB_SHA'):
+        mlflow.log_param("github_sha", os.environ['GITHUB_SHA'])
+        mlflow.log_param("github_ref", os.environ.get('GITHUB_REF'))
+        mlflow.log_param("github_run_number", os.environ.get('GITHUB_RUN_NUMBER'))
+
+    # Info tracking
+    tracking_mode = "remote" if os.environ.get('DAGSHUB_TOKEN') and os.environ.get('DAGSHUB_USERNAME') else "local"
+    mlflow.log_param("tracking_mode", tracking_mode)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
