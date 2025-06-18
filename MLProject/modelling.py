@@ -45,7 +45,7 @@ class PersonalityCICD:
                 os.environ['MLFLOW_TRACKING_PASSWORD'] = os.environ.get('DAGSHUB_TOKEN')
                 
                 dagshub_username = os.environ.get('DAGSHUB_USERNAME')
-                tracking_uri = f"https://dagshub.com/{dagshub_username}/Personality.mlflow"
+                tracking_uri = f"https://dagshub.com/{dagshub_username}/membangun_model.mlflow"
                 mlflow.set_tracking_uri(tracking_uri)
                 mlflow.set_experiment(self.experiment_name)
                 
