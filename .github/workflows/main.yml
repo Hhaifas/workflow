@@ -67,25 +67,19 @@ jobs:
           GITHUB_REPOSITORY: ${{ github.repository }}
           GITHUB_ACTOR: ${{ github.actor }}
         run: |
-          docker run --rm \
-            -e DAGSHUB_USERNAME="${{ secrets.DAGSHUB_USERNAME }}" \
-            -e DAGSHUB_TOKEN="${{ secrets.DAGSHUB_TOKEN }}" \
-            -e DOCKER_USERNAME="${{ secrets.DOCKER_USERNAME }}" \
-            -e GITHUB_RUN_NUMBER="${{ github.run_number }}" \
-            -e GITHUB_SHA="${{ github.sha }}" \
-            -e GITHUB_REF="${{ github.ref }}" \
-            -e GITHUB_REPOSITORY="${{ github.repository }}" \
-            -e GITHUB_ACTOR="${{ github.actor }}" \
-            -v $(pwd)/model_output:/app/model_output \
-            ${{ env.DOCKER_IMAGE_NAME }}:${{ github.sha }} \
-            python MLProject/modelling.py --data_path data_preprocessing.csv
+          RUN_ID=$(ls -td mlruns/0/*/ | head -n 1 | cut -d'/' -f3)
+          echo "run_id=$RUN_ID" >> $GITHUB_OUTPUT
 
-      - name: List files in model_output
+      - name: Check if model dir exists
+        working-directory: ./MLProject
         run: |
-          echo "Contents of model_output directory:"
-          ls -la model_output/
+          run_id=${{ steps.get_run_id.outputs.run_id }}
+          if [ ! -d "mlruns/0/$run_id/artifacts/model" ]; then
+            echo "Model directory does not exist!"
+            exit 1
+          fi
 
-      - name: Upload artifacts
+      - name: Upload to GitHub Artifacts
         uses: actions/upload-artifact@v4
         with:
           name: model-artifacts
