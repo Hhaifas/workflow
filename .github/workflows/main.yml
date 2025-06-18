@@ -34,11 +34,9 @@ jobs:
 
       - name: Get latest MLflow run_id
         id: get_run_id
-        working-directory: ./MLProject
         run: |
           RUN_ID=$(ls -td mlruns/0/*/ | head -n 1 | cut -d'/' -f3)
           echo "run_id=$RUN_ID" >> $GITHUB_OUTPUT
-          echo "Latest RUN_ID: $RUN_ID"
 
       - name: Upload to GitHub Artifacts
         uses: actions/upload-artifact@v4
@@ -56,7 +54,6 @@ jobs:
           python MLProject/upload_to_gdrive.py
 
       - name: Build Docker Model
-        working-directory: ./MLProject
         run: |
           run_id=${{ steps.get_run_id.outputs.run_id }}
           mlflow models build-docker -m mlruns/0/$run_id/artifacts/model -n ${{ secrets.DOCKER_USERNAME }}/mlflow-model
