@@ -22,7 +22,7 @@ mlflow.set_experiment('membangun_model')
 # Memuat dataset
 # data = pd.read_csv('data_preprocessing.csv')
 data = pd.read_csv(args.data_path)
-input_example = data[0:8]
+input_example = data.drop('Personality', axis=1).iloc[0:8]
     
 X_train, X_test, y_train, y_test = train_test_split(
     data.drop('Personality', axis=1),

@@ -1,0 +1,30 @@
+artifact_path: model
+flavors:
+  python_function:
+    env:
+      conda: conda.yaml
+      virtualenv: python_env.yaml
+    loader_module: mlflow.sklearn
+    model_path: model.pkl
+    predict_fn: predict
+    python_version: 3.11.2
+  sklearn:
+    code: null
+    pickled_model: model.pkl
+    serialization_format: cloudpickle
+    sklearn_version: 1.6.1
+mlflow_version: 2.19.0
+model_size_bytes: 1730387
+model_uuid: 3afc004058154250a6cf4594dc998750
+run_id: a1429f9eef0544c292a65293e158ab9c
+signature:
+  inputs: '[{"type": "double", "name": "num__Time_spent_Alone", "required": true},
+    {"type": "double", "name": "num__Social_event_attendance", "required": true},
+    {"type": "double", "name": "num__Going_outside", "required": true}, {"type": "double",
+    "name": "num__Friends_circle_size", "required": true}, {"type": "double", "name":
+    "num__Post_frequency", "required": true}, {"type": "double", "name": "cat__Stage_fear",
+    "required": true}, {"type": "double", "name": "cat__Drained_after_socializing",
+    "required": true}]'
+  outputs: '[{"type": "tensor", "tensor-spec": {"dtype": "int64", "shape": [-1]}}]'
+  params: null
+utc_time_created: '2025-06-18 01:25:37.661693'

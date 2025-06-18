@@ -1,0 +1,15 @@
+artifact_uri: mlflow-artifacts:/338296731791984366/a1429f9eef0544c292a65293e158ab9c/artifacts
+end_time: 1750209941714
+entry_point_name: ''
+experiment_id: '338296731791984366'
+lifecycle_stage: active
+run_id: a1429f9eef0544c292a65293e158ab9c
+run_name: intelligent-asp-263
+run_uuid: a1429f9eef0544c292a65293e158ab9c
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1750209935733
+status: 3
+tags: []
+user_id: Asus
