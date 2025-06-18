@@ -68,7 +68,7 @@ jobs:
         working-directory: ./MLProject
         run: |
           run_id=${{ steps.get_run_id.outputs.run_id }}
-          mlflow models build-docker -m mlruns/0/$run_id/artifacts/model -n ${{ secrets.DOCKER_USERNAME }}/mlflow-model
+          mlflow models build-docker -m mlruns/0/${{ steps.get_run_id.outputs.run_id }/artifacts/model -n ${{ secrets.DOCKER_USERNAME }}/mlflow-model
 
       - name: Log in to Docker Hub
         run: |
