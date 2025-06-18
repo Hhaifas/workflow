@@ -32,13 +32,17 @@ jobs:
           unset MLFLOW_TRACKING_URI
 
       - name: Clean old mlruns
-        run: rm -rf mlruns
-  
-      - name: Run mlflow project
         run: |
-          mlflow run MLProject --env-manager=local
+          rm -rf mlruns
+          rm -rf MLProject/mlruns
+
+      - name: Run mlflow project
+        working-directory: ./MLProject
+        run: |
+          mlflow run . --env-manager=local
 
       - name: Get latest MLflow run_id
+        working-directory: ./MLProject
         id: get_run_id
         run: |
           RUN_ID=$(ls -td mlruns/0/*/ | head -n 1 | cut -d'/' -f3)
@@ -51,15 +55,17 @@ jobs:
           path: mlruns/0/${{ steps.get_run_id.outputs.run_id }}/artifacts/model/
 
       - name: Upload to Google Drive
+        working-directory: ./MLProject
         env:
-          GDRIVE_CREDENTIALS: ${{ secrets.GDRIVE_CREDENTIALS }} # Mengambil kredensial dari GitHub Secrets
-          GDRIVE_FOLDER_ID: ${{ secrets.GDRIVE_FOLDER_ID }} # Mengambil kredensial dari GitHub Secrets
+          GDRIVE_CREDENTIALS: ${{ secrets.GDRIVE_CREDENTIALS }}
+          GDRIVE_FOLDER_ID: ${{ secrets.GDRIVE_FOLDER_ID }}
         if: success()
         run: |
           pip install --upgrade google-auth google-auth-oauthlib google-auth-httplib2 google-api-python-client
-          python MLProject/upload_to_gdrive.py
+          python upload_to_gdrive.py
 
       - name: Build Docker Model
+        working-directory: ./MLProject
         run: |
           run_id=${{ steps.get_run_id.outputs.run_id }}
           mlflow models build-docker -m mlruns/0/$run_id/artifacts/model -n ${{ secrets.DOCKER_USERNAME }}/mlflow-model
@@ -77,12 +83,3 @@ jobs:
         run: |
           docker push ${{ secrets.DOCKER_USERNAME }}/mlflow-model:latest
           docker push ${{ secrets.DOCKER_USERNAME }}/mlflow-model:${{ steps.get_run_id.outputs.run_id }}
-
-      # save models to github repository
-      - name: Save mlruns to repo
-        run: |
-          git config --global user.name ${{secrets.USERNAME }}
-          git config --global user.email ${{secrets.EMAIL }}
-          git add mlruns/
-          git commit -m "Save mlruns from CI run"
-          git push origin main
