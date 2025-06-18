@@ -32,8 +32,9 @@ jobs:
           unset MLFLOW_TRACKING_URI
 
       - name: Clean old mlruns
-        run: rm -rf mlruns
-        rm -rf MLProject/mlruns
+        run: |
+          rm -rf mlruns
+          rm -rf MLProject/mlruns
 
       - name: Run mlflow project
         working-directory: ./MLProject
