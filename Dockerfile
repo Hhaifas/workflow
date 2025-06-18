@@ -1,19 +1,23 @@
-# Gunakan base image Python yang ringan
+# Gunakan base image Python yang ringan dan kompatibel
 FROM python:3.11-slim
 
-# Set working directory
+# Set working directory di dalam container
 WORKDIR /app
 
-# Copy requirements dan install dependencies
+# Copy requirements file dan install dependencies
 COPY MLProject/requirements.txt .
 RUN pip install --upgrade pip && pip install -r requirements.txt
 
-# Copy seluruh source code project ke image
+# Copy semua source code project ke dalam image
 COPY MLProject/ ./MLProject/
 COPY data_preprocessing.csv .
+COPY scripts/ ./scripts/
 
-# (Optional) Set environment variable agar output log langsung tampil
+# Pastikan folder output model ada
+RUN mkdir -p model_output
+
+# Set agar output log Python langsung tampil
 ENV PYTHONUNBUFFERED=1
 
-# Default command: jalankan script python
+# Default command: jalankan script modelling.py
 ENTRYPOINT ["python", "MLProject/modelling.py"]

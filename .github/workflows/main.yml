@@ -1,94 +1,128 @@
-name: CI MLflow
+name: Personality Model CI Pipeline
 
 on:
   push:
-    branches:
-      - main
+    branches: [main, develop]
   pull_request:
-    branches:
-      - main
+    branches: [main]
+  workflow_dispatch:
+
+env:
+  DOCKER_IMAGE_NAME: ${{ secrets.DOCKER_USERNAME }}/personality-model
+  EXPERIMENT_NAME: membangun_model
 
 jobs:
-  build:
+  test:
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
-      - name: Set up Python 3.11.2
+      - name: Set up Python
         uses: actions/setup-python@v4
         with:
-          python-version: '3.11.2'
+          python-version: '3.11'
 
       - name: Install dependencies
-        working-directory: ./MLProject
         run: |
           python -m pip install --upgrade pip
-          pip install -r requirements.txt
+          pip install -r MLProject/requirements.txt
+          pip install flake8
 
-      - name: Unset MLFLOW_TRACKING_URI
-        run: |
-          unset MLFLOW_TRACKING_URI
+      - name: Lint code
+        run: flake8 MLProject/modelling.py --count --select=E9,F63,F7,F82 --show-source --statistics
 
-      - name: Clean old mlruns
-        run: |
-          rm -rf mlruns
-          rm -rf MLProject/mlruns
+  build-and-train:
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-      - name: Run mlflow project
-        working-directory: ./MLProject
-        run: |
-          mlflow run . --env-manager=local
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
 
-      - name: Get latest MLflow run_id
-        working-directory: ./MLProject
-        id: get_run_id
-        run: |
-          RUN_ID=$(ls -td mlruns/0/*/ | head -n 1 | cut -d'/' -f3)
-          echo "run_id=$RUN_ID" >> $GITHUB_OUTPUT
-          
-      - name: Check if model dir exists
-        working-directory: ./MLProject
-        run: |
-          run_id=${{ steps.get_run_id.outputs.run_id }}
-          if [ ! -d "mlruns/0/$run_id/artifacts/model" ]; then
-            echo "Model directory does not exist!"
-            exit 1
-          fi
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PAT }}
 
-      - name: Upload to GitHub Artifacts
+      - name: Build Docker image
+        run: |
+          docker build -t ${{ env.DOCKER_IMAGE_NAME }}:${{ github.sha }} .
+          docker build -t ${{ env.DOCKER_IMAGE_NAME }}:latest .
+
+      - name: Create model output directory
+        run: mkdir -p model_output
+
+      - name: Run ML training with MLflow in Docker
+        env:
+          DAGSHUB_USERNAME: ${{ secrets.DAGSHUB_USERNAME }}
+          DAGSHUB_TOKEN: ${{ secrets.DAGSHUB_TOKEN }}
+          DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+          GITHUB_RUN_NUMBER: ${{ github.run_number }}
+          GITHUB_SHA: ${{ github.sha }}
+          GITHUB_REF: ${{ github.ref }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          GITHUB_ACTOR: ${{ github.actor }}
+        run: |
+          docker run --rm \
+            -e DAGSHUB_USERNAME="${{ secrets.DAGSHUB_USERNAME }}" \
+            -e DAGSHUB_TOKEN="${{ secrets.DAGSHUB_TOKEN }}" \
+            -e DOCKER_USERNAME="${{ secrets.DOCKER_USERNAME }}" \
+            -e GITHUB_RUN_NUMBER="${{ github.run_number }}" \
+            -e GITHUB_SHA="${{ github.sha }}" \
+            -e GITHUB_REF="${{ github.ref }}" \
+            -e GITHUB_REPOSITORY="${{ github.repository }}" \
+            -e GITHUB_ACTOR="${{ github.actor }}" \
+            -v $(pwd)/model_output:/app/model_output \
+            ${{ env.DOCKER_IMAGE_NAME }}:${{ github.sha }} \
+            python MLProject/modelling.py --data_path data_preprocessing.csv
+
+      - name: List files in model_output
+        run: |
+          echo "Contents of model_output directory:"
+          ls -la model_output/
+
+      - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: mlflow-model
-          path: mlruns/0/${{ steps.get_run_id.outputs.run_id }}/artifacts/model/
+          name: model-artifacts
+          path: model_output/
+          retention-days: 30
+          if-no-files-found: warn
 
-      - name: Upload to Google Drive
-        working-directory: ./MLProject
-        env:
-          GDRIVE_CREDENTIALS: ${{ secrets.GDRIVE_CREDENTIALS }}
-          GDRIVE_FOLDER_ID: ${{ secrets.GDRIVE_FOLDER_ID }}
+      - name: Setup Google Drive credentials
         if: success()
         run: |
-          pip install --upgrade google-auth google-auth-oauthlib google-auth-httplib2 google-api-python-client
-          python upload_to_gdrive.py
+          echo "${{ secrets.GDRIVE_CREDENTIALS }}" | base64 --decode > scripts/service_account.json
+          # Verify file was created correctly (without showing content)
+          ls -la scripts/service_account.json
 
-      - name: Build Docker Model
-        working-directory: ./MLProject
+      - name: Upload to Google Drive
+        if: success()
         run: |
-          run_id=${{ steps.get_run_id.outputs.run_id }}
-          mlflow models build-docker -m mlruns/0/$run_id/artifacts/model -n ${{ secrets.DOCKER_USERNAME }}/mlflow-model
+          pip install google-auth google-auth-oauthlib google-auth-httplib2 google-api-python-client
+          python scripts/upload_to_gdrive.py
 
-      - name: Log in to Docker Hub
+      - name: Push Docker image
+        if: success()
         run: |
-          echo "${{ secrets.DOCKER_PAT }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
+          docker push ${{ env.DOCKER_IMAGE_NAME }}:${{ github.sha }}
+          docker push ${{ env.DOCKER_IMAGE_NAME }}:latest
 
-      - name: Tag Docker Image
-        run: |
-          docker tag ${{ secrets.DOCKER_USERNAME }}/mlflow-model ${{ secrets.DOCKER_USERNAME }}/mlflow-model:latest
-          docker tag ${{ secrets.DOCKER_USERNAME }}/mlflow-model ${{ secrets.DOCKER_USERNAME }}/mlflow-model:${{ steps.get_run_id.outputs.run_id }}
+  deploy:
+    needs: build-and-train
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-      - name: Push Docker Image
+      - name: Deploy notification
         run: |
-          docker push ${{ secrets.DOCKER_USERNAME }}/mlflow-model:latest
-          docker push ${{ secrets.DOCKER_USERNAME }}/mlflow-model:${{ steps.get_run_id.outputs.run_id }}
+          echo "🚀 Model training completed successfully!"
+          echo "📊 MLflow tracking: https://dagshub.com/${{ secrets.DAGSHUB_USERNAME }}/Personality-Tracking-Model.mlflow"
+          echo "🐳 Docker image: ${{ env.DOCKER_IMAGE_NAME }}:${{ github.sha }}"
+          echo "📁 Artifacts uploaded to Google Drive"
