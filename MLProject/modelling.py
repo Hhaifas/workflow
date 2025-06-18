@@ -86,6 +86,13 @@ def main(args):
         input_example=[input_example],
     )
     print("✅ Model berhasil disimpan ke MLflow.")
+    # Cek apakah model tersimpan
+    run = mlflow.active_run()
+    model_path = f"mlruns/0/{run.info.run_id}/artifacts/model"
+    if not os.path.exists(model_path):
+        print(f"❌ Model artifact tidak ditemukan di {model_path}")
+    else:
+        print(f"✅ Model artifact ditemukan di {model_path}")
 
     # Save model ke lokal juga untuk artifact
     save_model_local(model, model_name="model_rf.pkl")
