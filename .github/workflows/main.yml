@@ -124,6 +124,6 @@ jobs:
       - name: Deploy notification
         run: |
           echo "🚀 Model training completed successfully!"
-          echo "📊 MLflow tracking: https://dagshub.com/${{ secrets.DAGSHUB_USERNAME }}/Water-Quality-Tracking-Model.mlflow"
+          echo "📊 MLflow tracking: https://dagshub.com/${{ secrets.DAGSHUB_USERNAME }}/membangun_model.mlflow"
           echo "🐳 Docker image: ${{ env.DOCKER_IMAGE_NAME }}:${{ github.sha }}"
           echo "📁 Artifacts uploaded to Google Drive"
