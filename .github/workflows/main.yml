@@ -27,10 +27,13 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-      - name: Run mlflow project
-        working-directory: ./MLProject
+      - name: Unset MLFLOW_TRACKING_URI
         run: |
-          mlflow run . --env-manager=local
+          unset MLFLOW_TRACKING_URI
+
+      - name: Run mlflow project
+        run: |
+          mlflow run MLProject --env-manager=local
 
       - name: Get latest MLflow run_id
         id: get_run_id
