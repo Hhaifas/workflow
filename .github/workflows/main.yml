@@ -31,6 +31,9 @@ jobs:
         run: |
           unset MLFLOW_TRACKING_URI
 
+      - name: Clean old mlruns
+        run: rm -rf mlruns
+  
       - name: Run mlflow project
         run: |
           mlflow run MLProject --env-manager=local
