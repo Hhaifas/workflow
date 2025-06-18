@@ -32,28 +32,28 @@ X_train, X_test, y_train, y_test = train_test_split(
 )
 
 # Membuat sesi eksperimen baru untuk mencatat semua aktivitas terkait 
-with mlflow.start_run():
-    n_estimators = 100
-    max_depth = 10
-    mlflow.autolog()
-    
-    # Train model
-    model = RandomForestClassifier(n_estimators=n_estimators, max_depth=max_depth)
-    model.fit(X_train, y_train)
-    
-    mlflow.sklearn.log_model(
-        sk_model = model, 
-        artifact_path = "model",
-        input_example = input_example
-    )
-    
-    
-    # Log metrics 
-    accuracy = model.score(X_test, y_test)
-    mlflow.log_metric("accuracy", accuracy)
-    
-    
-    # evaluasi f1-score
-    y_pred = model.predict(X_test)
-    f1 = f1_score(y_test, y_pred, average='macro') 
-    mlflow.log_metric('f1_score', f1)
+
+n_estimators = 100
+max_depth = 10
+mlflow.autolog()
+
+# Train model
+model = RandomForestClassifier(n_estimators=n_estimators, max_depth=max_depth)
+model.fit(X_train, y_train)
+
+mlflow.sklearn.log_model(
+    sk_model = model, 
+    artifact_path = "model",
+    input_example = input_example
+)
+
+
+# Log metrics 
+accuracy = model.score(X_test, y_test)
+mlflow.log_metric("accuracy", accuracy)
+
+
+# evaluasi f1-score
+y_pred = model.predict(X_test)
+f1 = f1_score(y_test, y_pred, average='macro') 
+mlflow.log_metric('f1_score', f1)
