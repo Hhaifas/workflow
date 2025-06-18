@@ -1,0 +1,15 @@
+artifact_uri: file:///C:/Users/Asus/submission_msml/Workflow-CI/MLProject/mlruns/739470474633960459/f49ec89d8d7544e483023296a9196e22/artifacts
+end_time: 1750246417818
+entry_point_name: ''
+experiment_id: '739470474633960459'
+lifecycle_stage: active
+run_id: f49ec89d8d7544e483023296a9196e22
+run_name: RandomForest_local
+run_uuid: f49ec89d8d7544e483023296a9196e22
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1750246388949
+status: 3
+tags: []
+user_id: Asus

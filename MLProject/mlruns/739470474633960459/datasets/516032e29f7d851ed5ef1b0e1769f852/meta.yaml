@@ -1,0 +1,13 @@
+digest: b495a054
+name: dataset
+profile: '{"num_rows": 1, "num_elements": 7}'
+schema: '{"mlflow_colspec": [{"type": "double", "name": "num__Time_spent_Alone", "required":
+  true}, {"type": "double", "name": "num__Social_event_attendance", "required": true},
+  {"type": "double", "name": "num__Going_outside", "required": true}, {"type": "double",
+  "name": "num__Friends_circle_size", "required": true}, {"type": "double", "name":
+  "num__Post_frequency", "required": true}, {"type": "double", "name": "cat__Stage_fear",
+  "required": true}, {"type": "double", "name": "cat__Drained_after_socializing",
+  "required": true}]}'
+source: '{"tags": {"mlflow.user": "Asus", "mlflow.source.name": "modelling.py", "mlflow.source.type":
+  "LOCAL", "mlflow.source.git.commit": "02b1172dfcfc8ba74633026334d5ae720f333904"}}'
+source_type: code

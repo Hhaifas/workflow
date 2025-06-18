@@ -1,13 +1,30 @@
-name: my_ml_project
+# name: my_ml_project
+# conda_env: conda.yaml
+# entry_points:
+#   main:
+#     parameters:
+#       data_path: { type: str, default: 'data_preprocessing.csv' }
+#       test_size: { type: float, default: 0.3 }
+#       random_state: { type: int, default: 42 }
+#     command: >
+#       python modelling.py
+#       --data_path {data_path}
+#       --test_size {test_size}
+#       --random_state {random_state}
+
+name: personality-ml
+
 conda_env: conda.yaml
+
 entry_points:
   main:
+    command: 'python modelling.py'
+
+  train:
     parameters:
-      data_path: { type: str, default: 'data_preprocessing.csv' }
-      test_size: { type: float, default: 0.3 }
-      random_state: { type: int, default: 42 }
-    command: >
-      python modelling.py 
-      --data_path {data_path}
-      --test_size {test_size}
-      --random_state {random_state}
+      data_path: { type: string, default: 'data_preprocessing.csv' }
+      experiment_name: { type: string, default: 'membangun_model' }
+    command: 'python modelling.py --data_path {data_path} --experiment_name {experiment_name}'
+
+  docker:
+    command: 'python modelling.py'
