@@ -96,7 +96,7 @@ jobs:
       - name: Setup Google Drive credentials
         if: success()
         run: |
-          echo "${{ secrets.GOOGLE_DRIVE_CREDENTIALS }}" | base64 --decode > scripts/service_account.json
+          echo "${{ secrets.GDRIVE_CREDENTIALS }}" | base64 --decode > scripts/service_account.json
           # Verify file was created correctly (without showing content)
           ls -la scripts/service_account.json
 
