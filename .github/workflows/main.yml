@@ -102,6 +102,8 @@ jobs:
 
       - name: Upload to Google Drive
         if: success()
+        env:
+          GDRIVE_FOLDER_ID: ${{ secrets.GDRIVE_FOLDER_ID }}
         run: |
           pip install google-auth google-auth-oauthlib google-auth-httplib2 google-api-python-client
           cd scripts
