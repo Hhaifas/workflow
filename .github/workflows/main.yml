@@ -105,7 +105,7 @@ jobs:
         run: |
           pip install google-auth google-auth-oauthlib google-auth-httplib2 google-api-python-client
           cd scripts
-          python upload-to-drive.py
+          python upload_to_gdrive.py
 
       - name: Push Docker image
         if: success()
